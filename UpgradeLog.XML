@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type='text/xsl' href='_UpgradeReport_Files/UpgradeReport.xslt'?><UpgradeLog>
+<Properties><Property Name="Solution" Value="lib_sqlConnectionKu">
+</Property><Property Name="Solution File" Value="C:\Users\livan.afryanto\Documents\Visual Studio 2010\Projects\library\lib_sqlConnectionKu\lib_sqlConnectionKu.sln">
+</Property><Property Name="Date" Value="Wednesday, May 18, 2016">
+</Property><Property Name="Time" Value="10:55 AM">
+</Property></Properties><Event ErrorLevel="0" Project="lib_sqlConnectionKu" Source="lib_sqlConnectionKu.csproj" Description="The project file does not require conversion.">
+</Event><Event ErrorLevel="3" Project="lib_sqlConnectionKu" Source="lib_sqlConnectionKu.csproj" Description="No Conversion Required">
+</Event><Event ErrorLevel="0" Project="" Source="lib_sqlConnectionKu.sln" Description="Solution converted successfully">
+</Event><Event ErrorLevel="3" Project="" Source="lib_sqlConnectionKu.sln" Description="Converted">
+</Event></UpgradeLog>
