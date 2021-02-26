@@ -1,5 +1,0 @@
-C:\Users\livan.afryanto\Documents\Visual Studio 2010\Projects\library\lib_sqlConnectionKu\bin\Debug\lib_sqlConnectionKu.dll
-C:\Users\livan.afryanto\Documents\Visual Studio 2010\Projects\library\lib_sqlConnectionKu\bin\Debug\lib_sqlConnectionKu.pdb
-C:\Users\livan.afryanto\Documents\Visual Studio 2010\Projects\library\lib_sqlConnectionKu\obj\Debug\ResolveAssemblyReference.cache
-C:\Users\livan.afryanto\Documents\Visual Studio 2010\Projects\library\lib_sqlConnectionKu\obj\Debug\lib_sqlConnectionKu.dll
-C:\Users\livan.afryanto\Documents\Visual Studio 2010\Projects\library\lib_sqlConnectionKu\obj\Debug\lib_sqlConnectionKu.pdb

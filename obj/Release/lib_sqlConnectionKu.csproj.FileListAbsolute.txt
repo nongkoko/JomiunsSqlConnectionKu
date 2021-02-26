@@ -1,6 +1,0 @@
-L:\Projects\lib_sqlConnectionKu\bin\Release\lib_sqlConnectionKu.dll
-L:\Projects\lib_sqlConnectionKu\bin\Release\lib_sqlConnectionKu.pdb
-L:\Projects\lib_sqlConnectionKu\obj\Release\lib_sqlConnectionKu.csprojAssemblyReference.cache
-L:\Projects\lib_sqlConnectionKu\obj\Release\lib_sqlConnectionKu.csproj.CoreCompileInputs.cache
-L:\Projects\lib_sqlConnectionKu\obj\Release\lib_sqlConnectionKu.dll
-L:\Projects\lib_sqlConnectionKu\obj\Release\lib_sqlConnectionKu.pdb
