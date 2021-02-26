@@ -1,25 +1,26 @@
 ﻿using System;
 using System.Data;
+using System.Linq;
 using System.Data.SqlClient;
 
-namespace lib_sqlConnectionKu
+namespace JomiunsCom
 {
     public class sqlCommandKu : IDisposable
     {
-        private SqlCommand _cmdOleDBcommand;
-        private sqlConnectionKu _parentSqlConn;
+        private readonly SqlCommand _cmdOleDBcommand;
+        private readonly sqlConnectionKu _parentSqlConn;
 
-        public sqlCommandKu(string instrNamaSP, sqlConnectionKu insqlParentSQLconn)
+        public sqlCommandKu(string instrSPName, sqlConnectionKu insqlParentSQLconn)
         {
             this.clearLastCommand();
 
             _parentSqlConn = insqlParentSQLconn;
             _cmdOleDBcommand = _parentSqlConn.theSQLconn.CreateCommand();
-            _cmdOleDBcommand.CommandText = instrNamaSP;
+            _cmdOleDBcommand.CommandText = instrSPName;
             _cmdOleDBcommand.CommandType = System.Data.CommandType.StoredProcedure; //defaultnya adalah command SP
         }
 
-        public sqlCommandKu setCommandTypeMenjadiText()
+        public sqlCommandKu setCommandTypeAsText()
         {
             _cmdOleDBcommand.CommandType = System.Data.CommandType.Text;
             return this;
@@ -41,27 +42,39 @@ namespace lib_sqlConnectionKu
             }
         }
 
-        public DataSet GetDataSet()
+        public DataSet getDataSet()
         {
             this.doOpen();
-            SqlDataAdapter dtadptDataAdapter = new SqlDataAdapter(_cmdOleDBcommand);
-            DataSet dsReturnValue = new DataSet();
+            var dtadptDataAdapter = new SqlDataAdapter(_cmdOleDBcommand);
+            var dsReturnValue = new DataSet();
             dtadptDataAdapter.Fill(dsReturnValue);
             this.doClose();
             return dsReturnValue;
         }
 
-        public SqlParameter AddParamWithValue(string instrParamName, object inoValue)
+        public sqlCommandKu addParams(params (String paramName, object paramValue)[] parameters)
         {
-            SqlParameter odprmReturnValue;
-            odprmReturnValue = _cmdOleDBcommand.Parameters.AddWithValue(instrParamName, inoValue);
-            return odprmReturnValue;
+            var aNewProjection = parameters.Select((things) => new SqlParameter(things.paramName, things.paramValue));
+            _cmdOleDBcommand.Parameters.AddRange(aNewProjection.ToArray());
+            return this;
+        }
+
+        public sqlCommandKu addParamWithValue(string instrParamName, object inoValue, Action<SqlParameter> SqlParamCreatedCallBack)
+        {
+            var odprmReturnValue = _cmdOleDBcommand.Parameters.AddWithValue(instrParamName, inoValue);
+            SqlParamCreatedCallBack.Invoke(odprmReturnValue);
+            return this;
+        }
+
+        public sqlCommandKu addParamWithValue(string instrParamName, object inoValue)
+        {
+            return this.addParamWithValue(instrParamName, inoValue, null);
         }
 
         public T executeScalar<T>()
         {
             this.doOpen();
-            object aObject = _cmdOleDBcommand.ExecuteScalar();
+            var aObject = _cmdOleDBcommand.ExecuteScalar();
             this.doClose();
             return (T)aObject;
         }

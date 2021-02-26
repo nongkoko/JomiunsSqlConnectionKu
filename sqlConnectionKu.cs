@@ -1,16 +1,16 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 
-namespace lib_sqlConnectionKu
+namespace JomiunsCom
 {
-    public partial class sqlConnectionKu : IDisposable
+    public class sqlConnectionKu : IDisposable
     {
         private sqlCommandKu _cmdLastCommand;
 
         public System.Data.SqlClient.SqlConnection theSQLconn { get; set; }
 
-        public sqlConnectionKuInfo  SQLconnInfo { get; set; }
+        public sqlConnectionKuInfo SQLconnInfo { get; set; }
 
         public static sqlConnectionKu create(sqlConnectionKuInfo incInfo)
         {
@@ -20,7 +20,7 @@ namespace lib_sqlConnectionKu
                 SQLconnInfo = incInfo,
                 theSQLconn = new System.Data.SqlClient.SqlConnection(strConnectionString)
             };
-            return sqlconnReturnValue; 
+            return sqlconnReturnValue;
         }
 
         public static sqlConnectionKu create(string instrServerDanInstance, string instrUsername, string instrPassword, string instrInitialCatalog)
@@ -46,27 +46,30 @@ namespace lib_sqlConnectionKu
 
         public DataSet getDataSet(System.Reflection.MethodInfo inMethodInfo, ref object[] inListValues)
         {
-            string strMethodName = inMethodInfo.Name;
-            int intIndex = -1;
-            Dictionary<int, System.Data.SqlClient.SqlParameter> aDict = new Dictionary<int, System.Data.SqlClient.SqlParameter>();
-            DataSet dsResult = null;
+            var strMethodName = inMethodInfo.Name;
+            var intIndex = -1;
+            var aDict = new Dictionary<int, System.Data.SqlClient.SqlParameter>();
+            var dsResult = (DataSet)null;
             strMethodName = strMethodName.Replace("__", ".");
-            sqlCommandKu aCommand = this.getSP(strMethodName);
-            foreach (System.Reflection.ParameterInfo aParameterInfo in inMethodInfo.GetParameters())
+            var aCommand = this.getSP(strMethodName);
+            foreach (var aParameterInfo in inMethodInfo.GetParameters())
             {
                 intIndex++;
-                System.Data.SqlClient.SqlParameter aParam = aCommand.AddParamWithValue($"@{aParameterInfo.Name}", inListValues[intIndex]);
-                if (aParameterInfo.ParameterType.IsByRef)
-                {
-                    aParam.Direction = ParameterDirection.InputOutput;
-                    aParam.Size = -1;
-                }
-
-                aDict.Add(intIndex, aParam);
+                aCommand.addParamWithValue(
+                    instrParamName: $"@{aParameterInfo.Name}",
+                    inoValue: inListValues[intIndex],
+                    SqlParamCreatedCallBack: (agas) => {
+                        if (aParameterInfo.ParameterType.IsByRef)
+                        {
+                            agas.Direction = ParameterDirection.InputOutput;
+                            agas.Size = -1;
+                        }
+                        aDict.Add(intIndex, agas);
+                    });
             }
 
-            dsResult = aCommand.GetDataSet();
-            foreach (KeyValuePair<int, System.Data.SqlClient.SqlParameter> kvp in aDict)
+            dsResult = aCommand.getDataSet();
+            foreach (var kvp in aDict)
             {
                 inListValues[kvp.Key] = kvp.Value.Value;
             }
@@ -87,10 +90,10 @@ namespace lib_sqlConnectionKu
 
             if (this.theSQLconn != null)
             {
-                if (this.theSQLconn.State == System.Data.ConnectionState.Open )
+                if (this.theSQLconn.State == System.Data.ConnectionState.Open)
                     this.theSQLconn.Close();
                 this.theSQLconn.Dispose();
-            }            
+            }
         }
     }
 }

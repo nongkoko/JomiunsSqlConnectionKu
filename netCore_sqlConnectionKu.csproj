@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <PackageId>jomiuns.sqlConnectionKu</PackageId>
+    <Company>jomiuns.com</Company>
+    <Product>jomiuns.sqlConnectionKu</Product>
+    <Description>dibuat mengikuti kemudahan programmer..</Description>
+    <Copyright>2021 jomiuns.com</Copyright>
+    <Authors>livan.afryanto</Authors>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
+  </ItemGroup>
+
+</Project>
