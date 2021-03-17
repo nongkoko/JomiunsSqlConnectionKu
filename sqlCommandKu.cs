@@ -62,7 +62,7 @@ namespace JomiunsCom
         public sqlCommandKu addParamWithValue(string instrParamName, object inoValue, Action<SqlParameter> SqlParamCreatedCallBack)
         {
             var odprmReturnValue = _cmdOleDBcommand.Parameters.AddWithValue(instrParamName, inoValue);
-            SqlParamCreatedCallBack.Invoke(odprmReturnValue);
+            SqlParamCreatedCallBack?.Invoke(odprmReturnValue);
             return this;
         }
 

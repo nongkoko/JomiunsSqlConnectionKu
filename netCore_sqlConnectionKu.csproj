@@ -5,10 +5,11 @@
     <PackageId>jomiuns.sqlConnectionKu</PackageId>
     <Company>jomiuns.com</Company>
     <Product>jomiuns.sqlConnectionKu</Product>
-    <Description>dibuat mengikuti kemudahan programmer..</Description>
+    <Description>revisi: perbaikan bugs pada invoke call back</Description>
     <Copyright>2021 jomiuns.com</Copyright>
     <Authors>livan.afryanto</Authors>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
