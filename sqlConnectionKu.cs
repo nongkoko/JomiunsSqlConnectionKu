@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 
 namespace JomiunsCom
 {
-    public class sqlConnectionKu : IDisposable
+    public partial class sqlConnectionKu : IDisposable
     {
         private sqlCommandKu _cmdLastCommand;
+        public enDatabaseType databaseType { get; private set; }
 
-        public System.Data.SqlClient.SqlConnection theSQLconn { get; set; }
+        internal DbConnection theSQLconn { get; set; }
 
         public sqlConnectionKuInfo SQLconnInfo { get; set; }
 
@@ -18,7 +20,8 @@ namespace JomiunsCom
             var sqlconnReturnValue = new sqlConnectionKu
             {
                 SQLconnInfo = incInfo,
-                theSQLconn = new System.Data.SqlClient.SqlConnection(strConnectionString)
+                theSQLconn = new System.Data.SqlClient.SqlConnection(strConnectionString),
+                databaseType = enDatabaseType.SQLServer
             };
             return sqlconnReturnValue;
         }
@@ -34,11 +37,13 @@ namespace JomiunsCom
             };
 
             var objectku = sqlConnectionKu.create(aInfo);
+            objectku.databaseType = enDatabaseType.SQLServer;
             return objectku;
         }
 
         public sqlCommandKu getSP(string instrNamaSP)
         {
+            this._cmdLastCommand?.Dispose();
             this._cmdLastCommand = null;
             this._cmdLastCommand = new sqlCommandKu(instrNamaSP, this);
             return this._cmdLastCommand;
@@ -48,7 +53,7 @@ namespace JomiunsCom
         {
             var strMethodName = inMethodInfo.Name;
             var intIndex = -1;
-            var aDict = new Dictionary<int, System.Data.SqlClient.SqlParameter>();
+            var aDict = new Dictionary<int, DbParameter>();
             var dsResult = (DataSet)null;
             strMethodName = strMethodName.Replace("__", ".");
             var aCommand = this.getSP(strMethodName);
@@ -95,5 +100,13 @@ namespace JomiunsCom
                 this.theSQLconn.Dispose();
             }
         }
+
     }
+
+    public enum enDatabaseType
+    {
+        SQLServer = 1,
+        SqLite = 2
+    }
+
 }

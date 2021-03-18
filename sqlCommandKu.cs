@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
-using System.Data.SqlClient;
+
 
 namespace JomiunsCom
 {
-    public class sqlCommandKu : IDisposable
+    public partial class sqlCommandKu : IDisposable
     {
-        private readonly SqlCommand _cmdOleDBcommand;
+        private readonly DbCommand _cmdOleDBcommand;
         private readonly sqlConnectionKu _parentSqlConn;
 
         public sqlCommandKu(string instrSPName, sqlConnectionKu insqlParentSQLconn)
@@ -17,7 +18,7 @@ namespace JomiunsCom
             _parentSqlConn = insqlParentSQLconn;
             _cmdOleDBcommand = _parentSqlConn.theSQLconn.CreateCommand();
             _cmdOleDBcommand.CommandText = instrSPName;
-            _cmdOleDBcommand.CommandType = System.Data.CommandType.StoredProcedure; //defaultnya adalah command SP
+            if (insqlParentSQLconn.databaseType != enDatabaseType.SqLite) _cmdOleDBcommand.CommandType = System.Data.CommandType.StoredProcedure; //defaultnya adalah command SP
         }
 
         public sqlCommandKu setCommandTypeAsText()
@@ -25,6 +26,8 @@ namespace JomiunsCom
             _cmdOleDBcommand.CommandType = System.Data.CommandType.Text;
             return this;
         }
+
+        
 
         private void doClose()
         {
@@ -36,16 +39,13 @@ namespace JomiunsCom
 
         private void doOpen()
         {
-            if (_parentSqlConn.theSQLconn.State != System.Data.ConnectionState.Open)
-            {
-                _parentSqlConn.theSQLconn.Open();
-            }
+            if (_parentSqlConn.theSQLconn.State != System.Data.ConnectionState.Open) _parentSqlConn.theSQLconn.Open();
         }
 
         public DataSet getDataSet()
         {
             this.doOpen();
-            var dtadptDataAdapter = new SqlDataAdapter(_cmdOleDBcommand);
+            var dtadptDataAdapter = new System.Data.SqlClient.SqlDataAdapter(_cmdOleDBcommand as System.Data.SqlClient.SqlCommand);
             var dsReturnValue = new DataSet();
             dtadptDataAdapter.Fill(dsReturnValue);
             this.doClose();
@@ -54,14 +54,25 @@ namespace JomiunsCom
 
         public sqlCommandKu addParams(params (String paramName, object paramValue)[] parameters)
         {
-            var aNewProjection = parameters.Select((things) => new SqlParameter(things.paramName, things.paramValue));
-            _cmdOleDBcommand.Parameters.AddRange(aNewProjection.ToArray());
+            System.Collections.Generic.IEnumerable<DbParameter> aNewProjection = 
+                parameters.Select<(String paramName, object paramValue), DbParameter> ((things) =>
+                {
+                    if (this._parentSqlConn.databaseType == enDatabaseType.SQLServer) return new System.Data.SqlClient.SqlParameter(things.paramName, things.paramValue);
+                    if (this._parentSqlConn.databaseType == enDatabaseType.SqLite) return new Microsoft.Data.Sqlite.SqliteParameter(things.paramName, things.paramValue);
+                    return null;
+                });
+
+            (_cmdOleDBcommand.Parameters as DbParameterCollection).AddRange(aNewProjection.ToArray());
             return this;
         }
 
-        public sqlCommandKu addParamWithValue(string instrParamName, object inoValue, Action<SqlParameter> SqlParamCreatedCallBack)
+        public sqlCommandKu addParamWithValue(string instrParamName, object inoValue, Action<DbParameter> SqlParamCreatedCallBack)
         {
-            var odprmReturnValue = _cmdOleDBcommand.Parameters.AddWithValue(instrParamName, inoValue);
+            DbParameter odprmReturnValue = null;
+            if (this._parentSqlConn.databaseType == enDatabaseType.SQLServer) odprmReturnValue = new System.Data.SqlClient.SqlParameter(instrParamName, inoValue);
+            if (this._parentSqlConn.databaseType == enDatabaseType.SqLite) odprmReturnValue = new Microsoft.Data.Sqlite.SqliteParameter(instrParamName, inoValue);
+
+            _cmdOleDBcommand.Parameters.Add(odprmReturnValue);
             SqlParamCreatedCallBack?.Invoke(odprmReturnValue);
             return this;
         }
