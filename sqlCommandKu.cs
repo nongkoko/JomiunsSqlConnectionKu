@@ -3,7 +3,6 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 
-
 namespace JomiunsCom
 {
     public partial class sqlCommandKu : IDisposable
@@ -27,14 +26,9 @@ namespace JomiunsCom
             return this;
         }
 
-        
-
         private void doClose()
         {
-            if (_parentSqlConn.theSQLconn.State == ConnectionState.Open)
-            {
-                _parentSqlConn.theSQLconn.Close();
-            }
+            if (_parentSqlConn.theSQLconn.State == ConnectionState.Open) _parentSqlConn.theSQLconn.Close();
         }
 
         private void doOpen()
@@ -54,13 +48,13 @@ namespace JomiunsCom
 
         public sqlCommandKu addParams(params (String paramName, object paramValue)[] parameters)
         {
-            System.Collections.Generic.IEnumerable<DbParameter> aNewProjection = 
-                parameters.Select<(String paramName, object paramValue), DbParameter> ((things) =>
-                {
-                    if (this._parentSqlConn.databaseType == enDatabaseType.SQLServer) return new System.Data.SqlClient.SqlParameter(things.paramName, things.paramValue);
-                    if (this._parentSqlConn.databaseType == enDatabaseType.SqLite) return new Microsoft.Data.Sqlite.SqliteParameter(things.paramName, things.paramValue);
-                    return null;
-                });
+            System.Collections.Generic.IEnumerable<DbParameter> aNewProjection =
+                parameters.Select<(String paramName, object paramValue), DbParameter>((things) =>
+               {
+                   if (this._parentSqlConn.databaseType == enDatabaseType.SQLServer) return new System.Data.SqlClient.SqlParameter(things.paramName, things.paramValue);
+                   if (this._parentSqlConn.databaseType == enDatabaseType.SqLite) return new Microsoft.Data.Sqlite.SqliteParameter(things.paramName, things.paramValue);
+                   return null;
+               });
 
             (_cmdOleDBcommand.Parameters as DbParameterCollection).AddRange(aNewProjection.ToArray());
             return this;
@@ -79,7 +73,15 @@ namespace JomiunsCom
 
         public sqlCommandKu addParamWithValue(string instrParamName, object inoValue)
         {
-            return this.addParamWithValue(instrParamName, inoValue, null);
+            return this.addParamWithValue(true, instrParamName, inoValue);
+        }
+
+        public sqlCommandKu addParamWithValue(bool trueToAdd, string instrParamName, object inoValue)
+        {
+            if (trueToAdd)
+                return this.addParamWithValue(instrParamName, inoValue, null);
+            else
+                return this;
         }
 
         public T executeScalar<T>()
@@ -90,12 +92,22 @@ namespace JomiunsCom
             return (T)aObject;
         }
 
+        public void executeNonQuery(bool inblnAutoClose)
+        {
+            this.doOpen();
+            _cmdOleDBcommand.ExecuteNonQuery();
+
+            if (inblnAutoClose) this.doClose();
+        }
+
+        public void executeNonQuery()
+        {
+            this.executeNonQuery(true);
+        }
+
         private void clearLastCommand()
         {
-            if (this._cmdOleDBcommand != null)
-            {
-                this._cmdOleDBcommand.Dispose();
-            }
+            this._cmdOleDBcommand?.Dispose();
         }
 
         public void Dispose()
