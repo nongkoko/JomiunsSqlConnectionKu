@@ -6,8 +6,8 @@ namespace JomiunsCom
     {
         public void doSqliteExecuteReader(Action<Microsoft.Data.Sqlite.SqliteDataReader> onGotRecordSet, bool inblnAutoCloseConn)
         {
-            this.doOpen();
-            using (var reader = _cmdOleDBcommand.ExecuteReader())
+            doOpen();
+            using (System.Data.Common.DbDataReader reader = _cmdOleDBcommand.ExecuteReader())
             {
                 while (reader.Read())
                 {
@@ -15,12 +15,15 @@ namespace JomiunsCom
                 }
             }
 
-            if (inblnAutoCloseConn) this.doClose();
+            if (inblnAutoCloseConn)
+            {
+                doClose();
+            }
         }
 
         public void doSqliteExecuteReader(Action<Microsoft.Data.Sqlite.SqliteDataReader> onGotRecordSet)
         {
-            this.doSqliteExecuteReader(onGotRecordSet, true);
+            doSqliteExecuteReader(onGotRecordSet, true);
         }
     }
 }

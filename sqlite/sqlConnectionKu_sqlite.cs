@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.Data.Sqlite;
+﻿using Microsoft.Data.Sqlite;
 
 namespace JomiunsCom
 {
@@ -11,8 +8,10 @@ namespace JomiunsCom
         {
             var aReturnValue = new sqlConnectionKu();
 
-            var connectionStringBuilder = new SqliteConnectionStringBuilder();
-            connectionStringBuilder.DataSource = instrSqLiteDBpath;
+            var connectionStringBuilder = new SqliteConnectionStringBuilder()
+            {
+                DataSource = instrSqLiteDBpath
+            };
             aReturnValue.theSQLconn = new SqliteConnection(connectionStringBuilder.ConnectionString);
             aReturnValue.databaseType = enDatabaseType.SqLite;
             return aReturnValue;

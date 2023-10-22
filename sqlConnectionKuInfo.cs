@@ -1,4 +1,4 @@
-﻿namespace JomiunsCom
+﻿namespace netCore_sqlConnectionKu
 {
     public class sqlConnectionKuInfo
     {

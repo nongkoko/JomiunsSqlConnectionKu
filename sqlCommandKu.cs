@@ -12,12 +12,15 @@ namespace JomiunsCom
 
         public sqlCommandKu(string instrSPName, sqlConnectionKu insqlParentSQLconn)
         {
-            this.clearLastCommand();
+            clearLastCommand();
 
             _parentSqlConn = insqlParentSQLconn;
             _cmdOleDBcommand = _parentSqlConn.theSQLconn.CreateCommand();
             _cmdOleDBcommand.CommandText = instrSPName;
-            if (insqlParentSQLconn.databaseType != enDatabaseType.SqLite) _cmdOleDBcommand.CommandType = System.Data.CommandType.StoredProcedure; //defaultnya adalah command SP
+            if (insqlParentSQLconn.databaseType != enDatabaseType.SqLite)
+            {
+                _cmdOleDBcommand.CommandType = System.Data.CommandType.StoredProcedure; //defaultnya adalah command SP
+            }
         }
 
         public sqlCommandKu setCommandTypeAsText()
@@ -28,93 +31,108 @@ namespace JomiunsCom
 
         private void doClose()
         {
-            if (_parentSqlConn.theSQLconn.State == ConnectionState.Open) _parentSqlConn.theSQLconn.Close();
+            if (_parentSqlConn.theSQLconn.State == ConnectionState.Open)
+            {
+                _parentSqlConn.theSQLconn.Close();
+            }
         }
 
         private void doOpen()
         {
-            if (_parentSqlConn.theSQLconn.State != System.Data.ConnectionState.Open) _parentSqlConn.theSQLconn.Open();
+            if (_parentSqlConn.theSQLconn.State != System.Data.ConnectionState.Open)
+            {
+                _parentSqlConn.theSQLconn.Open();
+            }
         }
 
         public DataSet getDataSet()
         {
-            this.doOpen();
+            doOpen();
             var dtadptDataAdapter = new System.Data.SqlClient.SqlDataAdapter(_cmdOleDBcommand as System.Data.SqlClient.SqlCommand);
             var dsReturnValue = new DataSet();
-            dtadptDataAdapter.Fill(dsReturnValue);
-            this.doClose();
+            _ = dtadptDataAdapter.Fill(dsReturnValue);
+            doClose();
             return dsReturnValue;
         }
 
-        public sqlCommandKu addParams(params (String paramName, object paramValue)[] parameters)
+        public sqlCommandKu addParams(params (string paramName, object paramValue)[] parameters)
         {
             System.Collections.Generic.IEnumerable<DbParameter> aNewProjection =
-                parameters.Select<(String paramName, object paramValue), DbParameter>((things) =>
+                parameters.Select<(string paramName, object paramValue), DbParameter>((things) =>
                {
-                   if (this._parentSqlConn.databaseType == enDatabaseType.SQLServer) return new System.Data.SqlClient.SqlParameter(things.paramName, things.paramValue);
-                   if (this._parentSqlConn.databaseType == enDatabaseType.SqLite) return new Microsoft.Data.Sqlite.SqliteParameter(things.paramName, things.paramValue);
-                   return null;
+                   return _parentSqlConn.databaseType == enDatabaseType.SQLServer
+                       ? new System.Data.SqlClient.SqlParameter(things.paramName, things.paramValue)
+                       : _parentSqlConn.databaseType == enDatabaseType.SqLite
+                       ? new Microsoft.Data.Sqlite.SqliteParameter(things.paramName, things.paramValue)
+                       : (DbParameter)null;
                });
 
-            (_cmdOleDBcommand.Parameters as DbParameterCollection).AddRange(aNewProjection.ToArray());
+            _cmdOleDBcommand.Parameters.AddRange(aNewProjection.ToArray());
             return this;
         }
 
         public sqlCommandKu addParamWithValue(string instrParamName, object inoValue, Action<DbParameter> SqlParamCreatedCallBack)
         {
             DbParameter odprmReturnValue = null;
-            if (this._parentSqlConn.databaseType == enDatabaseType.SQLServer) odprmReturnValue = new System.Data.SqlClient.SqlParameter(instrParamName, inoValue);
-            if (this._parentSqlConn.databaseType == enDatabaseType.SqLite) odprmReturnValue = new Microsoft.Data.Sqlite.SqliteParameter(instrParamName, inoValue);
+            if (_parentSqlConn.databaseType == enDatabaseType.SQLServer)
+            {
+                odprmReturnValue = new System.Data.SqlClient.SqlParameter(instrParamName, inoValue);
+            }
 
-            _cmdOleDBcommand.Parameters.Add(odprmReturnValue);
+            if (_parentSqlConn.databaseType == enDatabaseType.SqLite)
+            {
+                odprmReturnValue = new Microsoft.Data.Sqlite.SqliteParameter(instrParamName, inoValue);
+            }
+
+            _ = _cmdOleDBcommand.Parameters.Add(odprmReturnValue);
             SqlParamCreatedCallBack?.Invoke(odprmReturnValue);
             return this;
         }
 
         public sqlCommandKu addParamWithValue(string instrParamName, object inoValue)
         {
-            return this.addParamWithValue(true, instrParamName, inoValue);
+            return addParamWithValue(true, instrParamName, inoValue);
         }
 
         public sqlCommandKu addParamWithValue(bool trueToAdd, string instrParamName, object inoValue)
         {
-            if (trueToAdd)
-                return this.addParamWithValue(instrParamName, inoValue, null);
-            else
-                return this;
+            return trueToAdd ? addParamWithValue(instrParamName, inoValue, null) : this;
         }
 
         public T executeScalar<T>()
         {
-            this.doOpen();
-            var aObject = _cmdOleDBcommand.ExecuteScalar();
-            this.doClose();
+            doOpen();
+            object aObject = _cmdOleDBcommand.ExecuteScalar();
+            doClose();
             return (T)aObject;
         }
 
         public void executeNonQuery(bool inblnAutoClose)
         {
-            this.doOpen();
-            _cmdOleDBcommand.ExecuteNonQuery();
+            doOpen();
+            _ = _cmdOleDBcommand.ExecuteNonQuery();
 
-            if (inblnAutoClose) this.doClose();
+            if (inblnAutoClose)
+            {
+                doClose();
+            }
         }
 
         public void executeNonQuery()
         {
-            this.executeNonQuery(true);
+            executeNonQuery(true);
         }
 
         private void clearLastCommand()
         {
-            this._cmdOleDBcommand?.Dispose();
+            _cmdOleDBcommand?.Dispose();
         }
 
         public void Dispose()
         {
             //throw new Exception("The method or operation is not implemented.");
             // lakukan bersih bersih disini
-            this.clearLastCommand();
+            clearLastCommand();
         }
     }
 }

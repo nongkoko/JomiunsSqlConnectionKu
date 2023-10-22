@@ -1,4 +1,5 @@
-﻿using System;
+﻿using netCore_sqlConnectionKu;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -16,7 +17,7 @@ namespace JomiunsCom
 
         public static sqlConnectionKu create(sqlConnectionKuInfo incInfo)
         {
-            var strConnectionString = $"data source={incInfo.SQLServer}; uid={incInfo.UserName}; password={incInfo.Password}; initial catalog={incInfo.InitialCatalog}";
+            string strConnectionString = $"data source={incInfo.SQLServer}; uid={incInfo.UserName}; password={incInfo.Password}; initial catalog={incInfo.InitialCatalog}";
             var sqlconnReturnValue = new sqlConnectionKu
             {
                 SQLconnInfo = incInfo,
@@ -36,34 +37,35 @@ namespace JomiunsCom
                 InitialCatalog = instrInitialCatalog
             };
 
-            var objectku = sqlConnectionKu.create(aInfo);
+            sqlConnectionKu objectku = sqlConnectionKu.create(aInfo);
             objectku.databaseType = enDatabaseType.SQLServer;
             return objectku;
         }
 
         public sqlCommandKu getSP(string instrNamaSP)
         {
-            this._cmdLastCommand?.Dispose();
-            this._cmdLastCommand = null;
-            this._cmdLastCommand = new sqlCommandKu(instrNamaSP, this);
-            return this._cmdLastCommand;
+            _cmdLastCommand?.Dispose();
+            _cmdLastCommand = null;
+            _cmdLastCommand = new sqlCommandKu(instrNamaSP, this);
+            return _cmdLastCommand;
         }
 
         public DataSet getDataSet(System.Reflection.MethodInfo inMethodInfo, ref object[] inListValues)
         {
-            var strMethodName = inMethodInfo.Name;
-            var intIndex = -1;
+            string strMethodName = inMethodInfo.Name;
+            int intIndex = -1;
             var aDict = new Dictionary<int, DbParameter>();
-            var dsResult = (DataSet)null;
+            DataSet dsResult = null;
             strMethodName = strMethodName.Replace("__", ".");
-            var aCommand = this.getSP(strMethodName);
-            foreach (var aParameterInfo in inMethodInfo.GetParameters())
+            sqlCommandKu aCommand = getSP(strMethodName);
+            foreach (System.Reflection.ParameterInfo aParameterInfo in inMethodInfo.GetParameters())
             {
                 intIndex++;
-                aCommand.addParamWithValue(
+                _ = aCommand.addParamWithValue(
                     instrParamName: $"@{aParameterInfo.Name}",
                     inoValue: inListValues[intIndex],
-                    SqlParamCreatedCallBack: (agas) => {
+                    SqlParamCreatedCallBack: (agas) =>
+                    {
                         if (aParameterInfo.ParameterType.IsByRef)
                         {
                             agas.Direction = ParameterDirection.InputOutput;
@@ -74,7 +76,7 @@ namespace JomiunsCom
             }
 
             dsResult = aCommand.getDataSet();
-            foreach (var kvp in aDict)
+            foreach (KeyValuePair<int, DbParameter> kvp in aDict)
             {
                 inListValues[kvp.Key] = kvp.Value.Value;
             }
@@ -83,21 +85,21 @@ namespace JomiunsCom
 
         public sqlConnectionKuInfo currentSQLinfo()
         {
-            return this.SQLconnInfo;
+            return SQLconnInfo;
         }
 
         public void Dispose()
         {
-            if (_cmdLastCommand != null)
-            {
-                _cmdLastCommand.Dispose();
-            }
+            _cmdLastCommand?.Dispose();
 
-            if (this.theSQLconn != null)
+            if (theSQLconn != null)
             {
-                if (this.theSQLconn.State == System.Data.ConnectionState.Open)
-                    this.theSQLconn.Close();
-                this.theSQLconn.Dispose();
+                if (theSQLconn.State == System.Data.ConnectionState.Open)
+                {
+                    theSQLconn.Close();
+                }
+
+                theSQLconn.Dispose();
             }
         }
 
