@@ -58,7 +58,7 @@ namespace JomiunsCom
         public sqlCommandKu addParams(params (string paramName, object paramValue)[] parameters)
         {
             System.Collections.Generic.IEnumerable<DbParameter> aNewProjection =
-                parameters.Select<(string paramName, object paramValue), DbParameter>((things) =>
+                parameters.Select((things) =>
                {
                    return _parentSqlConn.databaseType == enDatabaseType.SQLServer
                        ? new System.Data.SqlClient.SqlParameter(things.paramName, things.paramValue)

@@ -52,13 +52,14 @@ namespace JomiunsCom
 
         public DataSet getDataSet(System.Reflection.MethodInfo inMethodInfo, ref object[] inListValues)
         {
-            string strMethodName = inMethodInfo.Name;
-            int intIndex = -1;
+            var strMethodName = inMethodInfo.Name;
+            var intIndex = -1;
             var aDict = new Dictionary<int, DbParameter>();
             DataSet dsResult = null;
             strMethodName = strMethodName.Replace("__", ".");
-            sqlCommandKu aCommand = getSP(strMethodName);
-            foreach (System.Reflection.ParameterInfo aParameterInfo in inMethodInfo.GetParameters())
+            var aCommand = getSP(strMethodName);
+            
+            foreach (var aParameterInfo in inMethodInfo.GetParameters())
             {
                 intIndex++;
                 _ = aCommand.addParamWithValue(
@@ -94,7 +95,7 @@ namespace JomiunsCom
 
             if (theSQLconn != null)
             {
-                if (theSQLconn.State == System.Data.ConnectionState.Open)
+                if (theSQLconn.State == ConnectionState.Open)
                 {
                     theSQLconn.Close();
                 }
