@@ -9,8 +9,8 @@
     <Copyright>2021 jomiuns.com</Copyright>
     <Authors>livan.afryanto</Authors>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>3.0.1</Version>
-    <PackageReleaseNotes>add AddParamsWithValueFromObject</PackageReleaseNotes>
+    <Version>3.0.2</Version>
+    <PackageReleaseNotes>add saveDataToTable</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

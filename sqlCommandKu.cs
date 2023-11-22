@@ -58,6 +58,12 @@ namespace JomiunsCom
             return dsReturnValue;
         }
 
+        public sqlCommandKu addParams(params IDbDataParameter[] parameter)
+        {
+            _cmdOleDBcommand.Parameters.AddRange(parameter);
+            return this;
+        }
+
         public sqlCommandKu addParams(object parameterAndValues)
         {
             var aType = parameterAndValues.GetType();
@@ -110,7 +116,7 @@ namespace JomiunsCom
                 odprmReturnValue = new Microsoft.Data.Sqlite.SqliteParameter(instrParamName, inoValue);
             }
 
-            _ = _cmdOleDBcommand.Parameters.Add(odprmReturnValue);
+            this.addParams(odprmReturnValue);
             SqlParamCreatedCallBack?.Invoke(odprmReturnValue);
             return this;
         }

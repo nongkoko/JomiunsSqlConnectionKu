@@ -1,8 +1,11 @@
-﻿using netCore_sqlConnectionKu;
+﻿using Microsoft.Data.Sqlite;
+using netCore_sqlConnectionKu;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Data.SqlClient;
+using System.Linq;
 
 namespace JomiunsCom
 {
@@ -15,7 +18,52 @@ namespace JomiunsCom
 
         public sqlConnectionKuInfo SQLconnInfo { get; set; }
 
+#if NET5_0_OR_GREATER
+        public object saveDataToTable(string tableName, object toSave, bool getIdentity)
+        {
+            var retVal = null as object;
+            var theType = toSave.GetType();
+            var properties = theType.GetProperties();
 
+            var yeah = properties.Select(oo => new
+            {
+                columnName = oo.Name
+                               .Replace("open", "[open]", StringComparison.CurrentCultureIgnoreCase)
+                               .Replace("close", "[close]", StringComparison.CurrentCultureIgnoreCase),
+                parameter = (this.databaseType == enDatabaseType.SQLServer ?
+                            (DbParameter)new SqlParameter($"@{oo.Name}", oo.GetValue(toSave, null) ?? DBNull.Value) :
+                            (DbParameter)new SqliteParameter($"@{oo.Name}", oo.GetValue(toSave, null) ?? DBNull.Value))
+            });
+
+            var columnName = string.Join(",", yeah.Select(oo => oo.columnName).ToArray());
+            var paramName = string.Join(",", yeah.Select(oo => oo.parameter.ParameterName).ToArray());
+            var listParam = yeah.Select(oo => oo.parameter).ToList();
+
+            var SqlCommand = $@"
+insert into dbo.{tableName} ({columnName})
+select {paramName}";
+
+            if (getIdentity)
+            {
+                var temp = new[] { SqlCommand, "select @@IDENTITY" };
+                SqlCommand = string.Join(";" + Environment.NewLine, temp);
+            }
+            
+            var dsOut = this.getSP(SqlCommand)
+                            .setCommandTypeAsText()
+                            .addParams(listParam.ToArray())
+                            .getDataSet();
+
+            if (getIdentity)
+            {
+                var dtTable = dsOut.Tables[0];
+                var drRow = dtTable.Rows[0];
+                retVal = drRow[0];
+            }
+
+            return retVal;
+        }
+#endif
         public static sqlConnectionKu createSQLserver(string instrConnectionString)
         {
             var aTemp = new sqlConnectionKu
