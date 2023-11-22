@@ -1,6 +1,9 @@
-﻿using System;
+﻿using Microsoft.Data.Sqlite;
+using Microsoft.VisualBasic;
+using System;
 using System.Data;
 using System.Data.Common;
+using System.Data.SqlClient;
 using System.Linq;
 
 namespace JomiunsCom
@@ -55,13 +58,36 @@ namespace JomiunsCom
             return dsReturnValue;
         }
 
+        public sqlCommandKu addParams(object parameterAndValues)
+        {
+            var aType = parameterAndValues.GetType();
+            var properties = aType.GetProperties();
+
+            foreach (var oo in properties)
+            {
+                if (_parentSqlConn.databaseType == enDatabaseType.SQLServer)
+                {
+                    var aValue = oo.GetValue(parameterAndValues, null) ?? DBNull.Value;
+                    _cmdOleDBcommand.Parameters.Add(new SqlParameter($"@{oo.Name}", aValue));
+                }
+
+                if (_parentSqlConn.databaseType == enDatabaseType.SqLite)
+                {
+                    var aValue = oo.GetValue(parameterAndValues, null) ?? DBNull.Value;
+                    _cmdOleDBcommand.Parameters.Add(new SqliteParameter($"@{oo.Name}", aValue));
+                }
+            }
+
+            return this;
+        }
+
         public sqlCommandKu addParams(params (string paramName, object paramValue)[] parameters)
         {
             System.Collections.Generic.IEnumerable<DbParameter> aNewProjection =
                 parameters.Select((things) =>
                {
                    return _parentSqlConn.databaseType == enDatabaseType.SQLServer
-                       ? new System.Data.SqlClient.SqlParameter(things.paramName, things.paramValue)
+                       ? new SqlParameter(things.paramName, things.paramValue)
                        : _parentSqlConn.databaseType == enDatabaseType.SqLite
                        ? new Microsoft.Data.Sqlite.SqliteParameter(things.paramName, things.paramValue)
                        : (DbParameter)null;

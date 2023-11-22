@@ -15,6 +15,16 @@ namespace JomiunsCom
 
         public sqlConnectionKuInfo SQLconnInfo { get; set; }
 
+
+        public static sqlConnectionKu createSQLserver(string instrConnectionString)
+        {
+            var aTemp = new sqlConnectionKu
+            {
+                theSQLconn = new System.Data.SqlClient.SqlConnection(instrConnectionString),
+                databaseType = enDatabaseType.SQLServer
+            };
+            return aTemp;
+        }
         public static sqlConnectionKu create(sqlConnectionKuInfo incInfo)
         {
             string strConnectionString = $"data source={incInfo.SQLServer}; uid={incInfo.UserName}; password={incInfo.Password}; initial catalog={incInfo.InitialCatalog}";
@@ -58,7 +68,7 @@ namespace JomiunsCom
             DataSet dsResult = null;
             strMethodName = strMethodName.Replace("__", ".");
             var aCommand = getSP(strMethodName);
-            
+
             foreach (var aParameterInfo in inMethodInfo.GetParameters())
             {
                 intIndex++;

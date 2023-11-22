@@ -9,8 +9,8 @@
     <Copyright>2021 jomiuns.com</Copyright>
     <Authors>livan.afryanto</Authors>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>3.0.0</Version>
-    <PackageReleaseNotes>major updates, target multi frameworks</PackageReleaseNotes>
+    <Version>3.0.1</Version>
+    <PackageReleaseNotes>add AddParamsWithValueFromObject</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
