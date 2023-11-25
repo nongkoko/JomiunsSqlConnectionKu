@@ -1,4 +1,7 @@
-﻿using Microsoft.Data.Sqlite;
+﻿#if NET6_0_OR_GREATER
+using jomiunsExtensions;
+#endif
+using Microsoft.Data.Sqlite;
 using netCore_sqlConnectionKu;
 using System;
 using System.Collections.Generic;
@@ -30,9 +33,9 @@ namespace JomiunsCom
                 columnName = oo.Name
                                .Replace("open", "[open]", StringComparison.CurrentCultureIgnoreCase)
                                .Replace("close", "[close]", StringComparison.CurrentCultureIgnoreCase),
-                parameter = (this.databaseType == enDatabaseType.SQLServer ?
+                parameter = this.databaseType == enDatabaseType.SQLServer ?
                             (DbParameter)new SqlParameter($"@{oo.Name}", oo.GetValue(toSave, null) ?? DBNull.Value) :
-                            (DbParameter)new SqliteParameter($"@{oo.Name}", oo.GetValue(toSave, null) ?? DBNull.Value))
+                            (DbParameter)new SqliteParameter($"@{oo.Name}", oo.GetValue(toSave, null) ?? DBNull.Value)
             });
 
             var columnName = string.Join(",", yeah.Select(oo => oo.columnName).ToArray());
@@ -141,6 +144,58 @@ select {paramName}";
             }
             return dsResult;
         }
+
+
+#if NET6_0_OR_GREATER
+        public List<T> getAllFromTable<T>(string tableName, object criteriaAND, bool IsWithNolock, params string[] columnNameToSelect)
+        {
+            var aType = criteriaAND.GetType();
+            var properties = aType.GetProperties();
+            var yeah = properties.Select(oo => new
+            {
+                columnName = oo.Name,
+                parameter = this.databaseType == enDatabaseType.SQLServer ?
+                            (DbParameter)new SqlParameter($"@{oo.Name}", oo.GetValue(criteriaAND, null) ?? DBNull.Value) :
+                            (DbParameter)new SqliteParameter($"@{oo.Name}", oo.GetValue(criteriaAND, null) ?? DBNull.Value)
+                            
+            });
+
+            var arrWhereCriteria = yeah.Select(ooo =>
+            {
+                if (ooo.parameter.Value == DBNull.Value)
+                    return $"{ooo.columnName} is null";
+                return $"{ooo.columnName} = {ooo.parameter.ParameterName}";
+            }).ToArray();
+
+            var whereCriteria = string.Join(" and ", arrWhereCriteria);
+            var listWhereParam = yeah.Select(ooo => ooo.parameter)
+                                .Where(oo => oo.Value != DBNull.Value)
+                                .ToArray();
+
+            var listColumnNamesToSelect = "";
+            if (columnNameToSelect == null || columnNameToSelect.Length < 1)
+                listColumnNamesToSelect = "*";
+            else
+                listColumnNamesToSelect = string.Join(",", columnNameToSelect);
+
+            var WithNolock = IsWithNolock ? "with (nolock)" : "";
+
+            var sqlCommandPart01 = $@"
+select {listColumnNamesToSelect} 
+from dbo.{tableName} {WithNolock}
+";
+            var sqlCommand = string.Join(" where ", new[] { sqlCommandPart01, whereCriteria });
+
+            var dsOut = this.getSP(sqlCommand)
+                .setCommandTypeAsText()
+                .addParams(listWhereParam)
+                .getDataSet();
+            
+            var aTable = dsOut.Tables[0];
+            var returnValue = aTable.toListObject<T>();
+            return returnValue;
+        }
+#endif
 
         public sqlConnectionKuInfo currentSQLinfo()
         {

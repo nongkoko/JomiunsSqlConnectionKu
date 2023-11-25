@@ -9,13 +9,19 @@
     <Copyright>2021 jomiuns.com</Copyright>
     <Authors>livan.afryanto</Authors>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>3.0.2</Version>
-    <PackageReleaseNotes>add saveDataToTable</PackageReleaseNotes>
+    <Version>3.0.3</Version>
+    <PackageReleaseNotes>add getAllFromTable</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.SQLite" Version="3.1.8" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+    <PackageReference Include="jomiunsExtensions">
+      <Version>1.0.0</Version>
+    </PackageReference>
   </ItemGroup>
 
 </Project>

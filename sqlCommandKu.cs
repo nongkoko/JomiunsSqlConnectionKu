@@ -64,7 +64,7 @@ namespace JomiunsCom
             return this;
         }
 
-        public sqlCommandKu addParams(object parameterAndValues)
+        public sqlCommandKu addParamsFromObject(object parameterAndValues)
         {
             var aType = parameterAndValues.GetType();
             var properties = aType.GetProperties();
