@@ -1,13 +1,15 @@
 ﻿#if NET6_0_OR_GREATER
+using ImpromptuInterface;
 using jomiunsExtensions;
-#endif
+using Microsoft.Data.SqlClient;
 using Microsoft.Data.Sqlite;
+#endif
 using netCore_sqlConnectionKu;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Data.SqlClient;
+using System.Dynamic;
 using System.Linq;
 
 namespace JomiunsCom
@@ -51,7 +53,7 @@ select {paramName}";
                 var temp = new[] { SqlCommand, "select @@IDENTITY" };
                 SqlCommand = string.Join(";" + Environment.NewLine, temp);
             }
-            
+
             var dsOut = this.getSP(SqlCommand)
                             .setCommandTypeAsText()
                             .addParams(listParam.ToArray())
@@ -71,7 +73,7 @@ select {paramName}";
         {
             var aTemp = new sqlConnectionKu
             {
-                theSQLconn = new System.Data.SqlClient.SqlConnection(instrConnectionString),
+                theSQLconn = new Microsoft.Data.SqlClient.SqlConnection(instrConnectionString),
                 databaseType = enDatabaseType.SQLServer
             };
             return aTemp;
@@ -82,7 +84,7 @@ select {paramName}";
             var sqlconnReturnValue = new sqlConnectionKu
             {
                 SQLconnInfo = incInfo,
-                theSQLconn = new System.Data.SqlClient.SqlConnection(strConnectionString),
+                theSQLconn = new Microsoft.Data.SqlClient.SqlConnection(strConnectionString),
                 databaseType = enDatabaseType.SQLServer
             };
             return sqlconnReturnValue;
@@ -149,48 +151,22 @@ select {paramName}";
 #if NET6_0_OR_GREATER
         public List<T> getAllFromTable<T>(string tableName, object criteriaAND, bool IsWithNolock, params string[] columnNameToSelect)
         {
-            var aType = criteriaAND.GetType();
-            var properties = aType.GetProperties();
-            var yeah = properties.Select(oo => new
-            {
-                columnName = oo.Name,
-                parameter = this.databaseType == enDatabaseType.SQLServer ?
-                            (DbParameter)new SqlParameter($"@{oo.Name}", oo.GetValue(criteriaAND, null) ?? DBNull.Value) :
-                            (DbParameter)new SqliteParameter($"@{oo.Name}", oo.GetValue(criteriaAND, null) ?? DBNull.Value)
-                            
-            });
+            var querySelectPart01ResolverInstance = new querySelectPart01Resolver(Impromptu.ActLike<iSomething>(new { tableName, IsWithNolock, columnNameToSelect }));
+            var part01 = querySelectPart01ResolverInstance.solvePart01();
+            var aList = new List<string> { part01 };
+            var part02resolver = new selectQueryPart02Resolver(Impromptu.ActLike<iSelectQueryPart02>(new { criteriaAND, databaseType }));
+            var (whereCriteriaResult, listParamResult) = part02resolver.solvePart02();
 
-            var arrWhereCriteria = yeah.Select(ooo =>
-            {
-                if (ooo.parameter.Value == DBNull.Value)
-                    return $"{ooo.columnName} is null";
-                return $"{ooo.columnName} = {ooo.parameter.ParameterName}";
-            }).ToArray();
+            if (whereCriteriaResult.isNotNullOrEmpty())
+                aList.Add(whereCriteriaResult);
 
-            var whereCriteria = string.Join(" and ", arrWhereCriteria);
-            var listWhereParam = yeah.Select(ooo => ooo.parameter)
-                                .Where(oo => oo.Value != DBNull.Value)
-                                .ToArray();
-
-            var listColumnNamesToSelect = "";
-            if (columnNameToSelect == null || columnNameToSelect.Length < 1)
-                listColumnNamesToSelect = "*";
-            else
-                listColumnNamesToSelect = string.Join(",", columnNameToSelect);
-
-            var WithNolock = IsWithNolock ? "with (nolock)" : "";
-
-            var sqlCommandPart01 = $@"
-select {listColumnNamesToSelect} 
-from dbo.{tableName} {WithNolock}
-";
-            var sqlCommand = string.Join(" where ", new[] { sqlCommandPart01, whereCriteria });
+            var sqlCommand = string.Join(" where ", aList);
 
             var dsOut = this.getSP(sqlCommand)
                 .setCommandTypeAsText()
-                .addParams(listWhereParam)
+                .addParams(listParamResult)
                 .getDataSet();
-            
+
             var aTable = dsOut.Tables[0];
             var returnValue = aTable.toListObject<T>();
             return returnValue;

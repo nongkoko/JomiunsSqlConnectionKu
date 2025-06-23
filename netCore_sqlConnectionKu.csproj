@@ -6,21 +6,23 @@
     <Company>jomiuns.com</Company>
     <Product>jomiuns.sqlConnectionKu</Product>
     <Description>SQLServer and SqLite Wrapper dibuat untuk kemudahan programmer</Description>
-    <Copyright>2021 jomiuns.com</Copyright>
+    <Copyright>2025 jomiuns.com</Copyright>
     <Authors>livan.afryanto</Authors>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>3.0.3</Version>
-    <PackageReleaseNotes>add getAllFromTable</PackageReleaseNotes>
+    <Version>6.0.2</Version>
+    <LangVersion>12</LangVersion>
+    <PackageReleaseNotes>enhance getAllFromTable</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="impromptuinterface" Version="8.0.6" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
     <PackageReference Include="Microsoft.Data.SQLite" Version="3.1.8" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
     <PackageReference Include="jomiunsExtensions">
-      <Version>1.0.0</Version>
+      <Version>1.1.18</Version>
     </PackageReference>
   </ItemGroup>
 

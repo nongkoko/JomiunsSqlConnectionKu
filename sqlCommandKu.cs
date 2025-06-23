@@ -1,9 +1,8 @@
-﻿using Microsoft.Data.Sqlite;
-using Microsoft.VisualBasic;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.Data.Sqlite;
 using System;
 using System.Data;
 using System.Data.Common;
-using System.Data.SqlClient;
 using System.Linq;
 
 namespace JomiunsCom
@@ -51,7 +50,7 @@ namespace JomiunsCom
         public DataSet getDataSet()
         {
             doOpen();
-            var dtadptDataAdapter = new System.Data.SqlClient.SqlDataAdapter(_cmdOleDBcommand as System.Data.SqlClient.SqlCommand);
+            var dtadptDataAdapter = new Microsoft.Data.SqlClient.SqlDataAdapter(_cmdOleDBcommand as Microsoft.Data.SqlClient.SqlCommand);
             var dsReturnValue = new DataSet();
             _ = dtadptDataAdapter.Fill(dsReturnValue);
             doClose();
@@ -60,6 +59,8 @@ namespace JomiunsCom
 
         public sqlCommandKu addParams(params IDbDataParameter[] parameter)
         {
+            if (parameter == null)
+                return this;
             _cmdOleDBcommand.Parameters.AddRange(parameter);
             return this;
         }
@@ -108,7 +109,7 @@ namespace JomiunsCom
             DbParameter odprmReturnValue = null;
             if (_parentSqlConn.databaseType == enDatabaseType.SQLServer)
             {
-                odprmReturnValue = new System.Data.SqlClient.SqlParameter(instrParamName, inoValue);
+                odprmReturnValue = new Microsoft.Data.SqlClient.SqlParameter(instrParamName, inoValue);
             }
 
             if (_parentSqlConn.databaseType == enDatabaseType.SqLite)
