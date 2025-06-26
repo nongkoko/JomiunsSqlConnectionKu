@@ -12,7 +12,7 @@ namespace JomiunsCom
         private readonly DbCommand _cmdOleDBcommand;
         private readonly sqlConnectionKu _parentSqlConn;
 
-        public sqlCommandKu(string instrSPName, sqlConnectionKu insqlParentSQLconn)
+        internal sqlCommandKu(string instrSPName, sqlConnectionKu insqlParentSQLconn)
         {
             clearLastCommand();
 

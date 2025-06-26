@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace netCore_sqlConnectionKu
 {
-    public interface iSelectQueryPart02
+    internal interface iSelectQueryPart02
     {
         object criteriaAND { get; }
         enDatabaseType databaseType { get; }

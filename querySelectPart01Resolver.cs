@@ -2,7 +2,7 @@
 {
 #if NET6_0_OR_GREATER
 
-    public interface iSomething
+    internal interface iSomething
     {
         string tableName { get; }
         bool IsWithNolock { get; }
