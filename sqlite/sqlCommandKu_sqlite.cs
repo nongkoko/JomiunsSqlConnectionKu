@@ -2,23 +2,23 @@
 
 namespace JomiunsCom
 {
-    public partial class sqlCommandKu
+    public class sqlCommandKu02
     {
         public void doSqliteExecuteReader(Action<Microsoft.Data.Sqlite.SqliteDataReader> onGotRecordSet, bool inblnAutoCloseConn)
         {
-            doOpen();
-            using (System.Data.Common.DbDataReader reader = _cmdOleDBcommand.ExecuteReader())
-            {
-                while (reader.Read())
-                {
-                    onGotRecordSet?.Invoke(reader as Microsoft.Data.Sqlite.SqliteDataReader);
-                }
-            }
+            //doOpen();
+            //using (System.Data.Common.DbDataReader reader = _cmdOleDBcommand.ExecuteReader())
+            //{
+            //    while (reader.Read())
+            //    {
+            //        onGotRecordSet?.Invoke(reader as Microsoft.Data.Sqlite.SqliteDataReader);
+            //    }
+            //}
 
-            if (inblnAutoCloseConn)
-            {
-                doClose();
-            }
+            //if (inblnAutoCloseConn)
+            //{
+            //    doClose();
+            //}
         }
 
         public void doSqliteExecuteReader(Action<Microsoft.Data.Sqlite.SqliteDataReader> onGotRecordSet)

@@ -7,12 +7,12 @@ using System.Linq;
 
 namespace JomiunsCom;
 
-public partial class sqlCommandKu : IDisposable
+public class sqlCommandKu : IDisposable
 {
     private readonly DbCommand _cmdOleDBcommand;
-    private readonly sqlConnectionKu _parentSqlConn;
+    private readonly iSqlConnectionKu _parentSqlConn;
 
-    internal sqlCommandKu(string instrSPName, sqlConnectionKu insqlParentSQLconn)
+    internal sqlCommandKu(string instrSPName, iSqlConnectionKu insqlParentSQLconn)
     {
         clearLastCommand();
 

@@ -17,9 +17,13 @@ namespace JomiunsCom;
 
 public interface iSqlConnectionKu
 {
+    DbConnection theSQLconn { get; set; }
     sqlCommandKu getSP(string instrNamaSP);
+    enDatabaseType databaseType { get; internal set; }
+    sqlConnectionKuInfo SQLconnInfo { get; set; }
 #if NET6_0_OR_GREATER
     List<T> getAllFromTable<T>(string tableName, object criteriaAND, bool IsWithNolock, params string[] columnNameToSelect);
+    object saveDataToTable(string tableName, object toSave, bool getIdentity);
 #endif
 }
 
@@ -30,8 +34,8 @@ public class factory()
         var aTemp = new sqlConnectionKu
         {
             theSQLconn = new Microsoft.Data.SqlClient.SqlConnection(instrConnectionString),
-            databaseType = enDatabaseType.SQLServer
         };
+        (aTemp as iSqlConnectionKu).databaseType = enDatabaseType.SQLServer;
         return aTemp;
     }
 
@@ -40,10 +44,11 @@ public class factory()
         string strConnectionString = $"data source={incInfo.SQLServer}; uid={incInfo.UserName}; password={incInfo.Password}; initial catalog={incInfo.InitialCatalog}";
         var sqlconnReturnValue = new sqlConnectionKu
         {
-            SQLconnInfo = incInfo,
             theSQLconn = new Microsoft.Data.SqlClient.SqlConnection(strConnectionString),
-            databaseType = enDatabaseType.SQLServer
         };
+        var aTemp = sqlconnReturnValue as iSqlConnectionKu;
+        aTemp.SQLconnInfo = incInfo;
+        aTemp.databaseType = enDatabaseType.SQLServer;
         return sqlconnReturnValue;
     }
 
@@ -58,7 +63,7 @@ public class factory()
         };
 
         var objectku = factory.create(aInfo);
-        objectku.databaseType = enDatabaseType.SQLServer;
+        (objectku as iSqlConnectionKu).databaseType = enDatabaseType.SQLServer;
         return objectku;
     }
 #if NET6_0_OR_GREATER
@@ -71,7 +76,7 @@ public class factory()
             DataSource = instrSqLiteDBpath
         };
         aReturnValue.theSQLconn = new SqliteConnection(connectionStringBuilder.ConnectionString);
-        aReturnValue.databaseType = enDatabaseType.SqLite;
+        (aReturnValue as iSqlConnectionKu).databaseType = enDatabaseType.SqLite;
         return aReturnValue;
     }
 #endif
@@ -80,58 +85,13 @@ public class factory()
 public class sqlConnectionKu : IDisposable, iSqlConnectionKu
 {
     private sqlCommandKu _cmdLastCommand;
-    public enDatabaseType databaseType { get; internal set; }
 
     internal DbConnection theSQLconn { get; set; }
 
-    public sqlConnectionKuInfo SQLconnInfo { get; set; }
 
-#if NET5_0_OR_GREATER
-    public object saveDataToTable(string tableName, object toSave, bool getIdentity)
-    {
-        var retVal = null as object;
-        var theType = toSave.GetType();
-        var properties = theType.GetProperties();
-
-        var yeah = properties.Select(oo => new
-        {
-            columnName = oo.Name
-                           .Replace("open", "[open]", StringComparison.CurrentCultureIgnoreCase)
-                           .Replace("close", "[close]", StringComparison.CurrentCultureIgnoreCase),
-            parameter = this.databaseType == enDatabaseType.SQLServer ?
-                        (DbParameter)new SqlParameter($"@{oo.Name}", oo.GetValue(toSave, null) ?? DBNull.Value) :
-                        (DbParameter)new SqliteParameter($"@{oo.Name}", oo.GetValue(toSave, null) ?? DBNull.Value)
-        });
-
-        var columnName = string.Join(",", yeah.Select(oo => oo.columnName).ToArray());
-        var paramName = string.Join(",", yeah.Select(oo => oo.parameter.ParameterName).ToArray());
-        var listParam = yeah.Select(oo => oo.parameter).ToList();
-
-        var SqlCommand = $@"
-insert into dbo.{tableName} ({columnName})
-select {paramName}";
-
-        if (getIdentity)
-        {
-            var temp = new[] { SqlCommand, "select @@IDENTITY" };
-            SqlCommand = string.Join(";" + Environment.NewLine, temp);
-        }
-
-        var dsOut = ((iSqlConnectionKu)this).getSP(SqlCommand)
-                        .setCommandTypeAsText()
-                        .addParams(listParam.ToArray())
-                        .getDataSet();
-
-        if (getIdentity)
-        {
-            var dtTable = dsOut.Tables[0];
-            var drRow = dtTable.Rows[0];
-            retVal = drRow[0];
-        }
-
-        return retVal;
-    }
-#endif
+    enDatabaseType iSqlConnectionKu.databaseType { get; set; }
+    DbConnection iSqlConnectionKu.theSQLconn { get; set; }
+    sqlConnectionKuInfo iSqlConnectionKu.SQLconnInfo { get; set; }
 
     public DataSet getDataSet(System.Reflection.MethodInfo inMethodInfo, ref object[] inListValues)
     {
@@ -167,11 +127,6 @@ select {paramName}";
         return dsResult;
     }
 
-    public sqlConnectionKuInfo currentSQLinfo()
-    {
-        return SQLconnInfo;
-    }
-
     public void Dispose()
     {
         _cmdLastCommand?.Dispose();
@@ -201,7 +156,7 @@ select {paramName}";
         var querySelectPart01ResolverInstance = new querySelectPart01Resolver(Impromptu.ActLike<iSomething>(new { tableName, IsWithNolock, columnNameToSelect }));
         var part01 = querySelectPart01ResolverInstance.solvePart01();
         var aList = new List<string> { part01 };
-        var part02resolver = new selectQueryPart02Resolver(Impromptu.ActLike<iSelectQueryPart02>(new { criteriaAND, databaseType }));
+        var part02resolver = new selectQueryPart02Resolver(Impromptu.ActLike<iSelectQueryPart02>(new { criteriaAND, ((iSqlConnectionKu)this).databaseType }));
         var (whereCriteriaResult, listParamResult) = part02resolver.solvePart02();
 
         if (whereCriteriaResult.isNotNullOrEmpty())
@@ -218,7 +173,51 @@ select {paramName}";
         var returnValue = aTable.toListObject<T>();
         return returnValue;
     }
-    
+
+    object iSqlConnectionKu.saveDataToTable(string tableName, object toSave, bool getIdentity)
+    {
+        var retVal = null as object;
+        var theType = toSave.GetType();
+        var properties = theType.GetProperties();
+
+        var yeah = properties.Select(oo => new
+        {
+            columnName = oo.Name
+                           .Replace("open", "[open]", StringComparison.CurrentCultureIgnoreCase)
+                           .Replace("close", "[close]", StringComparison.CurrentCultureIgnoreCase),
+            parameter = (this as iSqlConnectionKu).databaseType == enDatabaseType.SQLServer ?
+                        (DbParameter)new SqlParameter($"@{oo.Name}", oo.GetValue(toSave, null) ?? DBNull.Value) :
+                        (DbParameter)new SqliteParameter($"@{oo.Name}", oo.GetValue(toSave, null) ?? DBNull.Value)
+        });
+
+        var columnName = string.Join(",", yeah.Select(oo => oo.columnName).ToArray());
+        var paramName = string.Join(",", yeah.Select(oo => oo.parameter.ParameterName).ToArray());
+        var listParam = yeah.Select(oo => oo.parameter).ToList();
+
+        var SqlCommand = $@"
+insert into dbo.{tableName} ({columnName})
+select {paramName}";
+
+        if (getIdentity)
+        {
+            var temp = new[] { SqlCommand, "select @@IDENTITY" };
+            SqlCommand = string.Join(";" + Environment.NewLine, temp);
+        }
+
+        var dsOut = ((iSqlConnectionKu)this).getSP(SqlCommand)
+                        .setCommandTypeAsText()
+                        .addParams(listParam.ToArray())
+                        .getDataSet();
+
+        if (getIdentity)
+        {
+            var dtTable = dsOut.Tables[0];
+            var drRow = dtTable.Rows[0];
+            retVal = drRow[0];
+        }
+
+        return retVal;
+    }
 #endif
 }
 
