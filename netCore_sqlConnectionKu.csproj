@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net472</TargetFrameworks>
+    <TargetFrameworks>net8.0;net472</TargetFrameworks>
     <PackageId>jomiuns.sqlConnectionKu</PackageId>
     <Company>jomiuns.com</Company>
     <Product>jomiuns.sqlConnectionKu</Product>
@@ -9,7 +9,7 @@
     <Copyright>2025 jomiuns.com</Copyright>
     <Authors>livan.afryanto</Authors>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>6.0.2</Version>
+    <Version>8.0.0</Version>
     <LangVersion>12</LangVersion>
     <PackageReleaseNotes>enhance getAllFromTable</PackageReleaseNotes>
   </PropertyGroup>
@@ -20,7 +20,7 @@
     <PackageReference Include="Microsoft.Data.SQLite" Version="3.1.8" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0' Or '$(TargetFramework)' == 'net8.0'">
     <PackageReference Include="jomiunsExtensions">
       <Version>1.1.18</Version>
     </PackageReference>
